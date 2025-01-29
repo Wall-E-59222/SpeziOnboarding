@@ -39,10 +39,12 @@ struct OnboardingWelcomeTestView: View {
 
 
 #if DEBUG
-#Preview {
-    OnboardingStack(startAtStep: OnboardingWelcomeTestView.self) {
-        for onboardingView in OnboardingFlow.previewSimulatorViews {
-            onboardingView
+struct OnboardingWelcomeTestView_Previews: PreviewProvider {
+    static var previews: some View {
+        OnboardingStack(startAtStep: OnboardingWelcomeTestView.self) {
+            for onboardingView in OnboardingFlow.previewSimulatorViews {
+                onboardingView
+            }
         }
     }
 }

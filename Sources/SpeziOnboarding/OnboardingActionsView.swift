@@ -28,9 +28,9 @@ import SwiftUI
 /// ```
 public struct OnboardingActionsView: View {
     private let primaryText: Text
-    private let primaryAction: @MainActor () async throws -> Void
+    private let primaryAction: () async throws -> Void
     private let secondaryText: Text?
-    private let secondaryAction: (@MainActor () async throws -> Void)?
+    private let secondaryAction: (() async throws -> Void)?
     
     @State private var primaryActionState: ViewState = .idle
     @State private var secondaryActionState: ViewState = .idle
@@ -58,9 +58,9 @@ public struct OnboardingActionsView: View {
 
     init(
         primaryText: Text,
-        primaryAction: @MainActor @escaping () async throws -> Void,
+        primaryAction: @escaping () async throws -> Void,
         secondaryText: Text? = nil,
-        secondaryAction: (@MainActor () async throws -> Void)? = nil
+        secondaryAction: (() async throws -> Void)? = nil
     ) {
         self.primaryText = primaryText
         self.primaryAction = primaryAction
@@ -75,7 +75,7 @@ public struct OnboardingActionsView: View {
     @_disfavoredOverload
     public init<Text: StringProtocol>(
         verbatim text: Text,
-        action: @MainActor @escaping () async throws -> Void
+        action: @escaping () async throws -> Void
     ) {
         self.init(primaryText: SwiftUI.Text(verbatim: String(text)), primaryAction: action)
     }
@@ -86,7 +86,7 @@ public struct OnboardingActionsView: View {
     ///   - action: The action that should be performed when pressing the primary button
     public init(
         _ text: LocalizedStringResource,
-        action: @MainActor @escaping () async throws -> Void
+        action: @escaping () async throws -> Void
     ) {
         self.init(primaryText: Text(text), primaryAction: action)
     }
@@ -99,9 +99,9 @@ public struct OnboardingActionsView: View {
     ///   - secondaryAction: The action that should be performed when pressing the secondary button
     public init(
         primaryText: LocalizedStringResource,
-        primaryAction: @MainActor @escaping () async throws -> Void,
+        primaryAction: @escaping () async throws -> Void,
         secondaryText: LocalizedStringResource,
-        secondaryAction: @MainActor @escaping () async throws -> Void
+        secondaryAction: @escaping () async throws -> Void
     ) {
         self.init(primaryText: Text(primaryText), primaryAction: primaryAction, secondaryText: Text(secondaryText), secondaryAction: secondaryAction)
     }
@@ -115,9 +115,9 @@ public struct OnboardingActionsView: View {
     @_disfavoredOverload
     public init<PrimaryText: StringProtocol, SecondaryText: StringProtocol>(
         primaryText: PrimaryText,
-        primaryAction: @MainActor @escaping () async throws -> Void,
+        primaryAction: @escaping () async throws -> Void,
         secondaryText: SecondaryText,
-        secondaryAction: @MainActor @escaping () async throws -> Void
+        secondaryAction: @escaping () async throws -> Void
     ) {
         self.init(
             primaryText: Text(verbatim: String(primaryText)),

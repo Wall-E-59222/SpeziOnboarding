@@ -147,20 +147,43 @@ public struct OnboardingInformationView: View {
 
 
 #if DEBUG
-#Preview {
-    OnboardingInformationView(
-        areas: [
+struct AreasView_Previews: PreviewProvider {
+    static var mock: [OnboardingInformationView.Content] {
+        [
             OnboardingInformationView.Content(
                 icon: Image(systemName: "pc"),
                 title: String("PC"),
-                description: String("This is a PC.")
+                description: String("This is a PC. And we can write a lot about PCs in a section like this. A very long text!")
             ),
             OnboardingInformationView.Content(
                 icon: Image(systemName: "desktopcomputer"),
                 title: String("Mac"),
-                description: String("This is an iMac.")
+                description: String("This is an iMac")
+            ),
+            OnboardingInformationView.Content(
+                icon: Image(systemName: "laptopcomputer"),
+                title: String("MacBook"),
+                description: String("This is a MacBook")
             )
         ]
-    )
+    }
+    
+    
+    static var previews: some View {
+        OnboardingInformationView(
+            areas: [
+                OnboardingInformationView.Content(
+                    icon: Image(systemName: "pc"),
+                    title: String("PC"),
+                    description: String("This is a PC.")
+                ),
+                OnboardingInformationView.Content(
+                    icon: Image(systemName: "desktopcomputer"),
+                    title: String("Mac"),
+                    description: String("This is an iMac.")
+                )
+            ]
+        )
+    }
 }
 #endif

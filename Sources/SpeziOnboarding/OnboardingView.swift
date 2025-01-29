@@ -17,12 +17,7 @@ import SwiftUI
 /// - Tip: The ``SequentialOnboardingView`` provides an alternative to provide
 /// sequential information that is displayed step by step.
 ///
-/// ### Usage
-///
-/// The following example demonstrates the usage of the ``OnboardingView`` using its default configuration. The default configuration divides up
-/// each screen into sections and allows you to add a title and subtitle for the overall view itself, as well as create separate information areas. Finally,
-/// there is an option for an action that should be performed (which can be used to go to the next screen in the onboarding flow).
-///
+/// The following example demonstrates the usage of the `OnboardingView` using its default configuration.
 /// ```swift
 /// OnboardingView(
 ///     title: "Title",
@@ -43,32 +38,6 @@ import SwiftUI
 /// ) {
 ///     // Action that should be performed on pressing the "Continue" button ...
 /// }
-/// ```
-///
-/// In implementation, you can treat the titleView, contentView, and actionView as regular SwiftUI Views. However, to simplify things, you can also use the built-in ``OnboardingTitleView`` and built-in ``OnboardingActionsView``, as demonstrated below.
-/// ``` swift
-/// OnboardingView(
-///     titleView: {
-///         OnboardingTitleView(
-///             title: "Title",
-///             subtitle: "Subtitle"
-///         )
-///     },
-///     contentView: {
-///         VStack {
-///             Text("This is the onboarding content.")
-///                 .font(.headline)
-///         }
-///     },
-///     actionView: {
-///         OnboardingActionsView (
-///             Text: "Action Text",
-///             Action: {
-///                 // Desired Action
-///             }
-///         )
-///     }
-/// )
 /// ```
 public struct OnboardingView<TitleView: View, ContentView: View, ActionView: View>: View {
     private let titleView: TitleView
@@ -101,7 +70,6 @@ public struct OnboardingView<TitleView: View, ContentView: View, ActionView: Vie
     
     
     /// Creates a customized `OnboardingView` allowing a complete customization of the  `OnboardingView`.
-    /// 
     /// - Parameters:
     ///   - titleView: The title view displayed at the top.
     ///   - contentView: The content view.
@@ -125,9 +93,9 @@ public struct OnboardingView<TitleView: View, ContentView: View, ActionView: Vie
     ///   - areas: The areas of the ``OnboardingView`` defined using ``OnboardingInformationView/Content`` instances..
     ///   - actionText: The localized text that should appear on the ``OnboardingView``'s primary button.
     ///   - action: The close that is called then the primary button is pressed.
-    public init(
+    public init( // swiftlint:disable:this function_default_parameter_at_end
         title: LocalizedStringResource,
-        subtitle: LocalizedStringResource? = nil, // swiftlint:disable:this function_default_parameter_at_end
+        subtitle: LocalizedStringResource? = nil,
         areas: [OnboardingInformationView.Content],
         actionText: LocalizedStringResource,
         action: @escaping () async throws -> Void
@@ -210,30 +178,10 @@ public struct OnboardingView<TitleView: View, ContentView: View, ActionView: Vie
 
 #if DEBUG
 #Preview {
-    let mock: [OnboardingInformationView.Content] =
-        [
-            OnboardingInformationView.Content(
-                icon: Image(systemName: "pc"),
-                title: String("PC"),
-                description: String("This is a PC. And we can write a lot about PCs in a section like this. A very long text!")
-            ),
-            OnboardingInformationView.Content(
-                icon: Image(systemName: "desktopcomputer"),
-                title: String("Mac"),
-                description: String("This is an iMac")
-            ),
-            OnboardingInformationView.Content(
-                icon: Image(systemName: "laptopcomputer"),
-                title: String("MacBook"),
-                description: String("This is a MacBook")
-            )
-        ]
-
-
     OnboardingView(
         title: String("Title"),
         subtitle: String("Subtitle"),
-        areas: mock,
+        areas: AreasView_Previews.mock,
         actionText: String("Primary Button")
     ) {
         print("Primary!")

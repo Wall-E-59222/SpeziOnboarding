@@ -149,8 +149,7 @@ struct ConsentViewExample: View {
             action: {
                 // Action to perform once the user has given their consent
             },
-            exportConfiguration: .init(paperSize: .usLetter),   // Configure the properties of the exported consent form
-            currentDateInSignature: true   // Indicates if the consent signature should include the current date.
+            exportConfiguration: .init(paperSize: .usLetter)   // Configure the properties of the exported consent form
         )
     }
 }
@@ -184,3 +183,8 @@ struct ConsentViewExample: View {
 - ``ConsentDocument``
 - ``ConsentViewState``
 - ``SignatureView``
+
+### Data Flow
+
+- ``OnboardingDataSource``
+- ``OnboardingConstraint``

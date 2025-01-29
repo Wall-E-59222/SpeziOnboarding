@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import OrderedCollections
 import SwiftUI
 
 
@@ -55,23 +54,15 @@ public class OnboardingNavigationPath {
     /// Indicates if the onboarding flow is completed, meaning the last view declared within the ``OnboardingStack`` is completed.
     private let complete: Binding<Bool>?
 
-    /// Stores all onboarding views as declared within the ``OnboardingStack`` and keep them in order.
-    private var onboardingSteps: OrderedDictionary<OnboardingStepIdentifier, any View> = [:]
+    /// Stores all onboarding views as declared within the ``OnboardingStack``.
+    private var onboardingSteps: [OnboardingStepIdentifier: any View] = [:]
     /// Stores all custom onboarding views that are appended to the `OnboardingNavigationPath`
     /// via the ``append(customView:)`` or ``append(customViewInit:)`` instance methods
     private var customOnboardingSteps: [OnboardingStepIdentifier: any View] = [:]
-
-
-    /// ``OnboardingStepIdentifier`` of first view in ``OnboardingStack``.
-    /// `nil` if ``OnboardingStack`` is empty.
-    internal var firstOnboardingStepIdentifier: OnboardingStepIdentifier? {
-        if onboardingSteps.elements.isEmpty {
-            return nil
-        } else {
-            return onboardingSteps.elements[0].key
-        }
-    }
-
+    /// Stores all `OnboardingStepIdentifier`s in-order as declared by the onboarding views within the ``OnboardingStack``.
+    private var onboardingStepsOrder: [OnboardingStepIdentifier] = []
+    
+    
     /// The initial view that is presented to the user.
     ///
     /// The first onboarding view of the `OnboardingNavigationPath.onboardingSteps`.
@@ -81,14 +72,14 @@ public class OnboardingNavigationPath {
     /// the property serves an `EmptyView` which is then dismissed immediately as the `OnboardingNavigationPath.complete` property
     /// is automatically set to true.
     var firstOnboardingView: AnyView {
-        guard let firstOnboardingStepIdentifier,
+        guard let firstOnboardingStepIdentifier = onboardingStepsOrder.first,
               let view = onboardingSteps[firstOnboardingStepIdentifier] else {
             return .init(EmptyView())
         }
-
+        
         return .init(view)
     }
-
+    
     /// Identifier of the current onboarding step that is shown to the user via its associated view.
     ///
     /// Inspects the `OnboardingNavigationPath.path` to determine the current on-top navigation element of the internal SwiftUI `NavigationPath`.
@@ -98,12 +89,13 @@ public class OnboardingNavigationPath {
     /// of the first onboarding view.
     private var currentOnboardingStep: OnboardingStepIdentifier? {
         guard let lastElement = path.last(where: { !$0.custom }) else {
-            return firstOnboardingStepIdentifier
+            return onboardingStepsOrder.first
         }
-
+        
         return lastElement
     }
-
+    
+    
     /// An `OnboardingNavigationPath` represents the current navigation path within the ``OnboardingStack``.
     /// - Parameters:
     ///   - views: SwiftUI `View`s that are declared within the ``OnboardingStack``.
@@ -119,8 +111,8 @@ public class OnboardingNavigationPath {
             append(startAtStep)
         }
     }
-
-
+    
+    
     /// Moves to the next onboarding step.
     ///
     /// An invocation of this function moves the ``OnboardingNavigationPath`` to the
@@ -130,17 +122,17 @@ public class OnboardingNavigationPath {
     ///
     /// After all onboarding steps have been shown, the injected `complete` `Binding` is set to true indicating that the onboarding flow is completed.
     public func nextStep() {
-        guard let currentStepIndex = onboardingSteps.elements.keys.firstIndex(where: { $0 == currentOnboardingStep }),
-              currentStepIndex + 1 < onboardingSteps.elements.count else {
+        guard let currentStepIndex = onboardingStepsOrder.firstIndex(where: { $0 == currentOnboardingStep }),
+              currentStepIndex + 1 < onboardingStepsOrder.count else {
             complete?.wrappedValue = true
             return
         }
-
+        
         appendToInternalNavigationPath(
-            of: onboardingSteps.elements.keys[currentStepIndex + 1]
+            of: onboardingStepsOrder[currentStepIndex + 1]
         )
     }
-
+    
     /// Moves the navigation path to the view of the provided type.
     ///
     /// This action integrates seamlessly with the ``nextStep()`` function, meaning one can switch between the ``append(_:)`` and ``nextStep()`` function.
@@ -150,10 +142,7 @@ public class OnboardingNavigationPath {
     /// - Parameters:
     ///   - onboardingStepType: The type of the onboarding `View` which should be displayed next. Must be declared within the ``OnboardingStack``.
     public func append(_ onboardingStepType: any View.Type) {
-        let onboardingStepIdentifier = OnboardingStepIdentifier(
-            onboardingStepType: onboardingStepType,
-            custom: false
-        )
+        let onboardingStepIdentifier = OnboardingStepIdentifier(fromType: onboardingStepType)
         guard onboardingSteps.keys.contains(onboardingStepIdentifier) else {
             print("""
             "Warning: Invocation of `OnboardingNavigationPath.append(_:)` with an Onboarding view
@@ -161,10 +150,10 @@ public class OnboardingNavigationPath {
             """)
             return
         }
-
+        
         appendToInternalNavigationPath(of: onboardingStepIdentifier)
     }
-
+    
     /// Moves the navigation path to the custom view.
     ///
     /// - Note: The custom `View` does not have to be declared within the ``OnboardingStack``.
@@ -174,22 +163,19 @@ public class OnboardingNavigationPath {
     ///   - customView: A custom onboarding `View` instance that should be shown next in the onboarding flow.
     ///     It isn't required to declare this view within the ``OnboardingStack``.
     public func append(customView: any View) {
-        let customOnboardingStepIdentifier = OnboardingStepIdentifier(
-            view: customView,
-            custom: true
-        )
+        let customOnboardingStepIdentifier = OnboardingStepIdentifier(fromView: customView, custom: true)
         customOnboardingSteps[customOnboardingStepIdentifier] = customView
-
+        
         appendToInternalNavigationPath(of: customOnboardingStepIdentifier)
     }
-
+    
     /// Removes the last element on top of the navigation path.
     ///
     /// This method allows to manually move backwards within the onboarding navigation flow.
     public func removeLast() {
         path.removeLast()
     }
-
+    
     /// Internal function used to update the onboarding steps within the ``OnboardingNavigationPath`` if the
     /// result builder associated with the ``OnboardingStack`` is reevaluated.
     ///
@@ -198,40 +184,31 @@ public class OnboardingNavigationPath {
     /// - Parameters:
     ///   - views: The updated `View`s from the ``OnboardingStack``.
     func updateViews(with views: [any View]) {
-        // Only allow view updates to views ahead of the current onboarding step.
-        // Without this limitation, attempts to navigate backwards or dismiss the currently displayed onboarding step
-        // (for example, after receiving HealthKit authorizations) could lead to unintended behavior.
-        let currentStepIndex = if let currentOnboardingStep {
-            onboardingSteps.elements.keys.firstIndex(of: currentOnboardingStep) ?? 0
-        } else {
-            0
-        }
-
-        // Remove all onboarding steps after the current onboarding step
-        let nextStepIndex = currentStepIndex + 1
-        if nextStepIndex < onboardingSteps.elements.count {
-            self.onboardingSteps.removeSubrange(nextStepIndex...)
-        }
-
-        for view in views {
-            let onboardingStepIdentifier = OnboardingStepIdentifier(view: view)
-            let stepIsAfterCurrentStep = !self.onboardingSteps.keys.contains(onboardingStepIdentifier)
-            guard stepIsAfterCurrentStep else {
-                continue
-            }
-
-            guard self.onboardingSteps[onboardingStepIdentifier] == nil else {
-                preconditionFailure("""
-                    SpeziOnboarding: Duplicate Onboarding step identifier hash `\(onboardingStepIdentifier.identifierHash)` identified.
-                    Ensure unique Onboarding view identifiers within the `OnboardingStack`!
+        // Only allow view updates as long as the first onboarding view is shown.
+        // Without this condition, the stored onboarding steps would continue to be updated when conditionals declared
+        // within the ``OnboardingStack`` change their outcome during the onboarding flow (e.g. when HealthKit permissions are granted during the onboarding),
+        // making it complex to keep track of the internal state of the navigation.
+        if currentOnboardingStep == onboardingStepsOrder.first {
+            self.onboardingSteps.removeAll(keepingCapacity: true)
+            self.onboardingStepsOrder.removeAll(keepingCapacity: true)
+            
+            for view in views {
+                let onboardingStepIdentifier = OnboardingStepIdentifier(fromView: view)
+                
+                guard self.onboardingSteps[onboardingStepIdentifier] == nil else {
+                    preconditionFailure("""
+                    SpeziOnboarding: Duplicate Onboarding step of type `\(onboardingStepIdentifier.onboardingStepType)` identified.
+                    Ensure unique Onboarding view instances within the `OnboardingStack`!
                     """)
+                }
+                self.onboardingStepsOrder.append(onboardingStepIdentifier)
+                self.onboardingSteps[onboardingStepIdentifier] = view
             }
-
-            self.onboardingSteps[onboardingStepIdentifier] = view
+            
+            onboardingComplete()
         }
-        onboardingComplete()
     }
-
+    
     /// Internal function used to navigate to the respective onboarding `View` via the `NavigationStack.navigationDestination(for:)`,
     /// either regularly declared within the ``OnboardingStack`` or custom steps
     /// passed via ``append(customView:)`` /``append(customViewInit:)``, identified by the `OnboardingStepIdentifier`.
@@ -246,17 +223,17 @@ public class OnboardingNavigationPath {
             }
             return AnyView(view)
         }
-
+        
         guard let view = onboardingSteps[onboardingStep] else {
             return AnyView(IllegalOnboardingStepView())
         }
         return AnyView(view)
     }
-
+    
     private func appendToInternalNavigationPath(of onboardingStepIdentifier: OnboardingStepIdentifier) {
         path.append(onboardingStepIdentifier)
     }
-
+    
     private func onboardingComplete() {
         if self.onboardingSteps.isEmpty && !(self.complete?.wrappedValue ?? false) {
             self.complete?.wrappedValue = true

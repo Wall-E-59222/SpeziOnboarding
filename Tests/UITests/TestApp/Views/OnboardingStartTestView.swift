@@ -31,17 +31,17 @@ struct OnboardingStartTestView: View {
             }
 
             Button {
-                path.append(OnboardingConsentTestView.self)
+                path.append(OnboardingConsentMarkdownTestView.self)
             } label: {
                 Text("Consent View (Markdown)")
             }
             
             Button {
-                path.append(OnboardingConsentFinishedRenderedView.self)
+                path.append(OnboardingConsentMarkdownRenderingView.self)
             } label: {
                 Text("Rendered Consent View (Markdown)")
             }
-
+            
             Button {
                 path.append(
                     customView: OnboardingCustomTestView1(exampleArgument: "Hello Spezi!")
@@ -55,13 +55,7 @@ struct OnboardingStartTestView: View {
             } label: {
                 Text("Custom Onboarding View 2")
             }
-
-            Button {
-                path.append(customView: OnboardingIdentifiableTestViewCustom(id: "ID: 1"))
-            } label: {
-                Text("Onboarding Identifiable View")
-            }
-
+            
             Spacer()
                 .frame(height: 8)
             
@@ -76,10 +70,12 @@ struct OnboardingStartTestView: View {
 
 
 #if DEBUG
-#Preview {
-    OnboardingStack(startAtStep: OnboardingStartTestView.self) {
-        for onboardingView in OnboardingFlow.previewSimulatorViews {
-            onboardingView
+struct OnboardingStartTestView_Previews: PreviewProvider {
+    static var previews: some View {
+        OnboardingStack(startAtStep: OnboardingStartTestView.self) {
+            for onboardingView in OnboardingFlow.previewSimulatorViews {
+                onboardingView
+            }
         }
     }
 }

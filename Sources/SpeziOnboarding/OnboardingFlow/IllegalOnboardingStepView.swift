@@ -20,7 +20,9 @@ struct IllegalOnboardingStepView: View {
 
 
 #if DEBUG
-#Preview {
-    IllegalOnboardingStepView()
+struct IllegalOnboardingStepView_Previews: PreviewProvider {
+    static var previews: some View {
+        IllegalOnboardingStepView()
+    }
 }
 #endif
